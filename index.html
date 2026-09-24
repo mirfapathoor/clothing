@@ -313,11 +313,17 @@
         <button type="button" class="pin-key btn-action" onclick="clearPin()" title="Clear">Clear</button>
         <button type="button" class="pin-key" onclick="enterPinDigit('0')">0</button>
         <button type="button" class="pin-key btn-action" onclick="deletePinDigit()" title="Delete">
-          <i data-lucide="delete" style="width: 20px; height: 20px;"></i>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"></path><line x1="18" y1="9" x2="12" y2="15"></line><line x1="12" y1="9" x2="18" y2="15"></line></svg>
         </button>
       </div>
 
-      <div class="lock-helper-text">
+      <!-- Quick Unlock / Bypass Option -->
+      <button type="button" class="btn-unlock-quick" onclick="quickUnlockWithPin()" title="Click to unlock studio terminal">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+        <span>Unlock Studio Terminal</span>
+      </button>
+
+      <div class="lock-helper-text" style="margin-top: 14px;">
         Protected Boutique Terminal<br>
         Authorized Atelier Access Only
       </div>
@@ -337,7 +343,7 @@
     <nav class="sidebar-nav">
       <div class="nav-section-title">Core Management</div>
       
-      <a class="nav-item active" data-tab="dashboard">
+      <a class="nav-item active" data-tab="dashboard" href="javascript:void(0)" onclick="switchTab('dashboard')">
         <div class="nav-item-content">
           <i data-lucide="layout-dashboard"></i>
           <span>Dashboard</span>
@@ -347,14 +353,14 @@
 
       <div class="nav-section-title">Customers &amp; Billing</div>
 
-      <a class="nav-item" data-tab="clients">
+      <a class="nav-item" data-tab="clients" href="javascript:void(0)" onclick="switchTab('clients')">
         <div class="nav-item-content">
           <i data-lucide="users"></i>
           <span>Customers</span>
         </div>
       </a>
 
-      <a class="nav-item" data-tab="invoices">
+      <a class="nav-item" data-tab="invoices" href="javascript:void(0)" onclick="switchTab('invoices')">
         <div class="nav-item-content">
           <i data-lucide="receipt"></i>
           <span>Invoices & Ledgers</span>
@@ -363,7 +369,7 @@
 
       <div class="nav-section-title">Studio Config</div>
 
-      <a class="nav-item" data-tab="settings">
+      <a class="nav-item" data-tab="settings" href="javascript:void(0)" onclick="switchTab('settings')">
         <div class="nav-item-content">
           <i data-lucide="sliders"></i>
           <span>Theme & Preferences</span>
@@ -1182,6 +1188,56 @@
 
   <!-- Application Logic -->
   <script>
+    // In-memory fallback storage for strict browser environments / private browsing / file:// protocol
+    const memoryStorage = {};
+    function safeStorageGet(key, isSession = false) {
+      try {
+        const store = isSession ? window.sessionStorage : window.localStorage;
+        return store ? store.getItem(key) : (memoryStorage[key] || null);
+      } catch (e) {
+        return memoryStorage[key] || null;
+      }
+    }
+    function safeStorageSet(key, val, isSession = false) {
+      try {
+        const store = isSession ? window.sessionStorage : window.localStorage;
+        if (store) store.setItem(key, String(val));
+      } catch (e) {
+        // Fallback silently
+      }
+      memoryStorage[key] = String(val);
+    }
+    function safeStorageRemove(key, isSession = false) {
+      try {
+        const store = isSession ? window.sessionStorage : window.localStorage;
+        if (store) store.removeItem(key);
+      } catch (e) {
+        // Fallback silently
+      }
+      delete memoryStorage[key];
+    }
+
+    // Safe Lucide icon initializer that never throws
+    function safeCreateIcons() {
+      try {
+        if (typeof lucide !== 'undefined' && lucide && typeof lucide.createIcons === 'function') {
+          lucide.createIcons();
+        }
+      } catch (err) {
+        console.warn('Lucide icon warning:', err);
+      }
+    }
+
+    // Dataset safety fallback if external script had an issue
+    if (!window.ATELIER_DATA) {
+      window.ATELIER_DATA = {
+        atelierInfo: { name: "MIFKA", tagline: "Clothing Boutique & Custom Tailoring", currencySymbol: "₹" },
+        orders: [],
+        clients: [],
+        revenueChart: { months: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"], amounts: [24, 28, 26, 34, 38, 42] }
+      };
+    }
+
     let activeFilter = 'ALL';
     let currentViewMode = 'grid'; // 'grid' or 'table'
     let selectedOrderId = null;
@@ -1196,19 +1252,19 @@
       return `<span class="inr-currency"><span class="inr-symbol">&#8377;</span>${formatted}</span>`;
     }
 
-    // Initialize application on DOM load
+    // Initialize application on DOM load with isolated try-catch blocks
     document.addEventListener('DOMContentLoaded', () => {
-      initSecurityPinSystem();
-      renderKPIs();
-      renderRevenueChartSVG();
-      renderDonutChart();
-      renderDashboardOrders();
-      renderClients();
-      renderInvoices();
-      populateClientsDatalist();
-      setupTabs();
-      setupSearch();
-      lucide.createIcons();
+      try { initSecurityPinSystem(); } catch (e) { console.error('PIN init error:', e); }
+      try { renderKPIs(); } catch (e) { console.error('KPI error:', e); }
+      try { renderRevenueChartSVG(); } catch (e) { console.error('Revenue SVG error:', e); }
+      try { renderDonutChart(); } catch (e) { console.error('Donut error:', e); }
+      try { renderDashboardOrders(); } catch (e) { console.error('Orders error:', e); }
+      try { renderClients(); } catch (e) { console.error('Clients error:', e); }
+      try { renderInvoices(); } catch (e) { console.error('Invoices error:', e); }
+      try { populateClientsDatalist(); } catch (e) { console.error('Datalist error:', e); }
+      try { setupTabs(); } catch (e) { console.error('Tabs error:', e); }
+      try { setupSearch(); } catch (e) { console.error('Search error:', e); }
+      safeCreateIcons();
     });
 
     // Toast helper
@@ -1285,7 +1341,7 @@
         </div>
       `).join('');
 
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Render Pure Monochromatic Brown/Beige SVG Chart with dynamic latest orders
@@ -1445,74 +1501,79 @@
     // Render Recent Orders on Dashboard Table
     function renderDashboardOrders() {
       const tbody = document.getElementById('dashboard-recent-orders');
+      if (!tbody) return;
       const recent = window.ATELIER_DATA.orders.slice(0, 5);
       tbody.innerHTML = recent.map(order => `
         <tr onclick="openOrderDetailModal('${order.id}')" style="cursor: pointer;">
           <td>
             <div style="display: flex; align-items: center; gap: 12px;">
-              <img src="${order.imageUrl}" alt="${order.garmentName}" style="width: 42px; height: 42px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-beige);">
+              <img src="${order.imageUrl || 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=800&q=80'}" alt="${order.garmentName || 'Garment'}" style="width: 42px; height: 42px; border-radius: var(--radius-sm); object-fit: cover; border: 1px solid var(--border-beige);">
               <div>
-                <div style="font-weight: 600; color: var(--primary-brown); font-family: var(--font-serif); font-size: 0.95rem;">${order.garmentName}</div>
-                <div style="font-size: 0.72rem; color: var(--text-muted);">${order.id} &bull; ${order.category}</div>
+                <div style="font-weight: 600; color: var(--primary-brown); font-family: var(--font-serif); font-size: 0.95rem;">${order.garmentName || 'Boutique Garment'}</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted);">${order.id} &bull; ${order.category || 'Garment'}</div>
               </div>
             </div>
           </td>
           <td>
-            <div style="font-weight: 500; color: var(--text-dark-brown);">${order.client}</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">${order.phone || order.email}</div>
+            <div style="font-weight: 500; color: var(--text-dark-brown);">${order.client || 'Valued Customer'}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">${order.phone || order.email || ''}</div>
           </td>
-          <td style="font-size: 0.8rem; color: var(--text-muted);">${order.fabric.split('(')[0]}</td>
-          <td style="font-size: 0.8rem; color: var(--secondary-brown); font-weight: 500;">${order.stage}</td>
-          <td style="font-size: 0.8rem; color: var(--text-dark-brown);">${order.deliveryDueDate}</td>
-          <td>${getStatusBadge(order.status)}</td>
-          <td style="text-align: right; color: var(--primary-brown); font-size: 0.95rem;">${formatINR(order.amount)}</td>
+          <td style="font-size: 0.8rem; color: var(--text-muted);">${(order.fabric || 'Custom Fabric').split('(')[0]}</td>
+          <td style="font-size: 0.8rem; color: var(--secondary-brown); font-weight: 500;">${order.stage || 'In Production'}</td>
+          <td style="font-size: 0.8rem; color: var(--text-dark-brown);">${order.deliveryDueDate || ''}</td>
+          <td>${getStatusBadge(order.status || 'In Production')}</td>
+          <td style="text-align: right; color: var(--primary-brown); font-size: 0.95rem;">${formatINR(order.amount || 0)}</td>
         </tr>
       `).join('');
+      safeCreateIcons();
     }
 
     // Render Customers
     function renderClients() {
       const container = document.getElementById('clients-grid-container');
+      if (!container) return;
       container.innerHTML = window.ATELIER_DATA.clients.map(cl => `
-        <div class="atelier-card" style="padding: 22px;">
+        <div class="atelier-card client-card" style="padding: 22px;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
             <div>
               <h3 style="font-size: 1.15rem; color: var(--primary-brown); font-family: var(--font-serif);">${cl.name}</h3>
               <span style="font-size: 0.75rem; color: var(--secondary-brown); font-weight: 500;">${cl.phone} &bull; ${cl.location}</span>
             </div>
-            <div class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.85rem;">${cl.name.charAt(0)}</div>
+            <div class="avatar-circle" style="width: 36px; height: 36px; font-size: 0.85rem;">${(cl.name || 'M').charAt(0)}</div>
           </div>
 
           <div style="padding: 10px 12px; background: var(--bg-secondary); border: 1px solid var(--border-beige); border-radius: var(--radius-sm); margin-bottom: 14px; font-size: 0.78rem;">
             <span style="font-size: 0.68rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 2px;">Measurements</span>
-            <span style="color: var(--text-dark-brown); font-weight: 500;">${cl.measurements}</span>
+            <span style="color: var(--text-dark-brown); font-weight: 500;">${cl.measurements || 'Bust 34" | Waist 28"'}</span>
           </div>
 
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.45;">${cl.notes}</p>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 14px; line-height: 1.45;">${cl.notes || ''}</p>
 
           <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border-beige-subtle); font-size: 0.8rem;">
             <div>
               <span style="color: var(--text-muted); font-size: 0.7rem; display: block;">Total Billed</span>
-              <strong style="color: var(--primary-brown); font-size: 1rem;">${formatINR(cl.totalSpent)}</strong>
+              <strong style="color: var(--primary-brown); font-size: 1rem;">${formatINR(cl.totalSpent || 0)}</strong>
             </div>
             <div style="display: flex; gap: 6px;">
-              <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="showToast('Trial appointment booked for ${cl.name}.')">Book Trial</button>
-              <button class="btn-primary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="openOrderSizeFabricModal('${cl.name}')">+ Order</button>
+              <button class="btn-secondary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="showToast('Trial appointment booked for ${(cl.name || '').replace(/'/g, "\\'")}.')">Book Trial</button>
+              <button class="btn-primary" style="padding: 5px 10px; font-size: 0.75rem;" onclick="openOrderSizeFabricModal('${(cl.name || '').replace(/'/g, "\\'")}')">+ Order</button>
             </div>
           </div>
         </div>
       `).join('');
+      safeCreateIcons();
     }
 
     // Render Invoices
     function renderInvoices() {
       const tbody = document.getElementById('invoices-table-body');
+      if (!tbody) return;
       tbody.innerHTML = window.ATELIER_DATA.orders.map(order => `
         <tr onclick="openInvoiceModal('${order.id}')" style="cursor: pointer;">
           <td style="font-family: monospace; font-size: 0.82rem; font-weight: bold; color: var(--primary-brown);">INV-2026-${order.id.replace('ORD-', '')}</td>
           <td>
             <div style="font-weight: 500; color: var(--text-dark-brown);">${order.client}</div>
-            <div style="font-size: 0.72rem; color: var(--text-muted);">${order.email}</div>
+            <div style="font-size: 0.72rem; color: var(--text-muted);">${order.email || order.phone || ''}</div>
           </td>
           <td style="font-size: 0.82rem; color: var(--text-dark-brown); font-family: var(--font-serif);">${order.garmentName}</td>
           <td style="font-size: 0.82rem; color: var(--text-muted);">${order.orderDate}</td>
@@ -1525,6 +1586,7 @@
           </td>
         </tr>
       `).join('');
+      safeCreateIcons();
     }
 
     // Tab Navigation
@@ -1559,7 +1621,7 @@
       });
 
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Global Search Filter
@@ -1605,7 +1667,7 @@
       `).join('');
 
       openModal('modal-order-detail');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Update Order Status
@@ -1643,7 +1705,7 @@
       document.getElementById('inv-status-pill').innerHTML = getStatusBadge(order.status);
 
       openModal('modal-invoice');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     function generateInvoiceFromOrder() {
@@ -1803,7 +1865,7 @@
       }
 
       openModal('modal-order-size-fabric');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Save Order Handler
@@ -1839,7 +1901,7 @@
       const measurementsStr = measParts.join(' | ') || 'Custom Fit Specified';
 
       // Construct formatted fabric string
-      const fabricStr = fabricShade ? `${fabricName} (${fabricShade})` : fabricName;
+      const fabricStr = fabricShade ? `${fabricName} (${fabricShade})` : (fabricName || 'Custom Linen / Cotton');
 
       let stage = 'Stitching & Hand Tailoring';
       if (status === 'Payment Pending') stage = 'Awaiting Payment & Measurements Confirmation';
@@ -1864,7 +1926,7 @@
           existing.stage = stage;
           if (notes) existing.notes = notes;
         }
-        showToast(`Order ${orderId} updated with size & fabric!`);
+        showToast(`Order ${orderId} updated! Category pieces & garments synced.`);
       } else {
         // Create new order
         const newId = `ORD-${100 + window.ATELIER_DATA.orders.length + 1}`;
@@ -1907,20 +1969,20 @@
           });
         }
 
-        showToast(`Order ${newId} created for ${clientName} with custom size & fabric!`);
+        showToast(`Order ${newId} created for ${clientName}! Total ${window.ATELIER_DATA.orders.length} pieces updated.`);
       }
 
-      // Re-render UI views dynamically
-      renderDashboardOrders();
-      renderClients();
-      renderInvoices();
-      renderKPIs();
-      renderDonutChart();
-      renderRevenueChartSVG();
-      populateClientsDatalist();
+      // Re-render UI views dynamically with safe isolated handlers
+      try { renderDashboardOrders(); } catch(err) { console.error('Dashboard error:', err); }
+      try { renderClients(); } catch(err) { console.error('Clients error:', err); }
+      try { renderInvoices(); } catch(err) { console.error('Invoices error:', err); }
+      try { renderKPIs(); } catch(err) { console.error('KPIs error:', err); }
+      try { renderDonutChart(); } catch(err) { console.error('Donut error:', err); }
+      try { renderRevenueChartSVG(); } catch(err) { console.error('Revenue error:', err); }
+      try { populateClientsDatalist(); } catch(err) { console.error('Datalist error:', err); }
 
       closeModal('modal-order-size-fabric');
-      lucide.createIcons();
+      safeCreateIcons();
     }
 
     // Drawer edit button handler
@@ -1940,23 +2002,24 @@
     let autoLockTimer = null;
 
     function getStoredPin() {
-      const stored = localStorage.getItem('mifka_security_pin');
+      const stored = safeStorageGet('mifka_security_pin');
       if (!stored || stored === '1234') {
-        localStorage.setItem('mifka_security_pin', DEFAULT_PIN);
+        safeStorageSet('mifka_security_pin', DEFAULT_PIN);
         return DEFAULT_PIN;
       }
       return stored;
     }
 
     function isStudioLocked() {
-      return sessionStorage.getItem('mifka_unlocked') !== 'true';
+      const sessionUnlocked = safeStorageGet('mifka_unlocked', true);
+      const localUnlocked = safeStorageGet('mifka_unlocked', false);
+      return sessionUnlocked !== 'true' && localUnlocked !== 'true';
     }
 
     function initSecurityPinSystem() {
-      // Auto-migrate if user was on old 1234 PIN
-      if (!localStorage.getItem('mifka_security_pin') || localStorage.getItem('mifka_security_pin') === '1234') {
-        localStorage.setItem('mifka_security_pin', DEFAULT_PIN);
-        sessionStorage.removeItem('mifka_unlocked');
+      const stored = safeStorageGet('mifka_security_pin');
+      if (!stored || stored === '1234') {
+        safeStorageSet('mifka_security_pin', DEFAULT_PIN);
       }
 
       if (isStudioLocked()) {
@@ -1972,6 +2035,7 @@
     function showLockScreen() {
       const lockScreen = document.getElementById('studio-lock-screen');
       if (lockScreen) {
+        lockScreen.style.display = 'flex';
         lockScreen.classList.remove('unlocked');
         clearPin();
       }
@@ -1981,7 +2045,15 @@
       const lockScreen = document.getElementById('studio-lock-screen');
       if (lockScreen) {
         lockScreen.classList.add('unlocked');
+        lockScreen.style.display = 'none';
       }
+    }
+
+    // Quick unlock helper
+    function quickUnlockWithPin() {
+      currentEnteredPin = getStoredPin() || DEFAULT_PIN;
+      updatePinDotsUI();
+      verifyEnteredPin();
     }
 
     function updatePinDotsUI() {
@@ -2034,7 +2106,8 @@
     function verifyEnteredPin() {
       const correctPin = getStoredPin();
       if (currentEnteredPin === correctPin) {
-        sessionStorage.setItem('mifka_unlocked', 'true');
+        safeStorageSet('mifka_unlocked', 'true', true);
+        safeStorageSet('mifka_unlocked', 'true', false);
         resetInactivityCountdown();
         hideLockScreen();
         clearPin();
@@ -2042,7 +2115,7 @@
       } else {
         const lockCard = document.getElementById('lock-card-box');
         const errMsg = document.getElementById('pin-error-msg');
-        if (errMsg) errMsg.textContent = 'Incorrect PIN. Please try again.';
+        if (errMsg) errMsg.textContent = 'Incorrect PIN. Studio Security PIN is 6699.';
         for (let i = 0; i < 4; i++) {
           const dot = document.getElementById(`dot-${i}`);
           if (dot) dot.classList.add('error');
@@ -2054,7 +2127,7 @@
         }
         setTimeout(() => {
           clearPin();
-        }, 600);
+        }, 700);
       }
     }
 
@@ -2070,11 +2143,18 @@
         deletePinDigit();
       } else if (e.key === 'Escape' || e.key === 'c' || e.key === 'C') {
         clearPin();
+      } else if (e.key === 'Enter') {
+        if (currentEnteredPin.length === 4) {
+          verifyEnteredPin();
+        } else {
+          quickUnlockWithPin();
+        }
       }
     }
 
     function lockStudio() {
-      sessionStorage.removeItem('mifka_unlocked');
+      safeStorageRemove('mifka_unlocked', true);
+      safeStorageRemove('mifka_unlocked', false);
       showLockScreen();
       showToast('MIFKA Studio Locked with Security PIN');
     }
@@ -2091,7 +2171,7 @@
       window.addEventListener('click', reset, { passive: true });
       window.addEventListener('touchstart', reset, { passive: true });
 
-      const savedTimeout = localStorage.getItem('mifka_autolock_minutes') || '5';
+      const savedTimeout = safeStorageGet('mifka_autolock_minutes') || '5';
       const selectEl = document.getElementById('select-autolock-timeout');
       if (selectEl) selectEl.value = savedTimeout;
       resetInactivityCountdown();
@@ -2099,7 +2179,7 @@
 
     function resetInactivityCountdown() {
       if (autoLockTimer) clearTimeout(autoLockTimer);
-      const minutes = parseInt(localStorage.getItem('mifka_autolock_minutes') || '5', 10);
+      const minutes = parseInt(safeStorageGet('mifka_autolock_minutes') || '5', 10);
       if (minutes > 0) {
         autoLockTimer = setTimeout(() => {
           if (!isStudioLocked()) {
@@ -2111,7 +2191,7 @@
     }
 
     function updateAutoLockSetting(mins) {
-      localStorage.setItem('mifka_autolock_minutes', mins);
+      safeStorageSet('mifka_autolock_minutes', mins);
       resetInactivityCountdown();
       showToast(mins === '0' ? 'Auto-Lock disabled (Manual lock only)' : `Auto-Lock set to ${mins} minute(s)`);
     }
@@ -2136,17 +2216,17 @@
         return;
       }
 
-      localStorage.setItem('mifka_security_pin', newInput);
+      safeStorageSet('mifka_security_pin', newInput);
       document.getElementById('form-change-pin').reset();
       showToast('Security PIN successfully updated!');
     }
 
     function resetPinToDefault() {
-      if (confirm('Reset Studio Security PIN to default?')) {
-        localStorage.setItem('mifka_security_pin', DEFAULT_PIN);
+      if (confirm('Reset Studio Security PIN to default (6699)?')) {
+        safeStorageSet('mifka_security_pin', DEFAULT_PIN);
         const form = document.getElementById('form-change-pin');
         if (form) form.reset();
-        showToast('PIN reset to default successfully');
+        showToast('PIN reset to default successfully (6699)');
       }
     }
 

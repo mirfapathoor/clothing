@@ -936,9 +936,33 @@ h1, h2, h3, h4, .font-serif-luxury, .font-roman {
 }
 
 .studio-lock-screen.unlocked {
-  opacity: 0;
-  pointer-events: none;
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
   transform: scale(1.02);
+}
+
+.btn-unlock-quick {
+  margin-top: 14px;
+  background: transparent;
+  border: 1px dashed var(--border-beige);
+  color: var(--secondary-brown);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-unlock-quick:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary-brown);
+  color: var(--primary-brown);
 }
 
 .lock-card {
