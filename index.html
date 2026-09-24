@@ -319,7 +319,7 @@
 
       <div class="lock-helper-text">
         Protected Boutique Terminal<br>
-        Default Studio PIN: <strong>6699</strong> (Customizable in Settings)
+        Authorized Atelier Access Only
       </div>
     </div>
   </div>
@@ -788,7 +788,7 @@
                     <span>Update Security PIN</span>
                   </button>
                   <button type="button" class="btn-secondary" style="font-size: 0.8rem; padding: 7px 14px;" onclick="resetPinToDefault()">
-                    Reset to Default (6699)
+                    Reset to Default PIN
                   </button>
                 </div>
               </form>
@@ -2063,11 +2063,11 @@
     }
 
     function resetPinToDefault() {
-      if (confirm('Reset Studio Security PIN to default (6699)?')) {
+      if (confirm('Reset Studio Security PIN to default?')) {
         localStorage.setItem('mifka_security_pin', DEFAULT_PIN);
         const form = document.getElementById('form-change-pin');
         if (form) form.reset();
-        showToast('PIN reset to default: 6699');
+        showToast('PIN reset to default successfully');
       }
     }
 
