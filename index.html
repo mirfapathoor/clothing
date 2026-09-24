@@ -478,7 +478,7 @@
                 <span>Jun: 26</span>
                 <span>Jul: 34</span>
                 <span>Aug: 38</span>
-                <span style="color: var(--primary-brown); font-weight: 600;">Sep: 42 (+16%)</span>
+                <span style="color: var(--primary-brown); font-weight: 600;" id="current-month-orders-label">Sep: 42 (+16%)</span>
               </div>
             </div>
           </div>
@@ -493,26 +493,8 @@
               <i data-lucide="pie-chart" style="width: 18px; height: 18px; color: var(--secondary-brown);"></i>
             </div>
             <div class="atelier-card-body">
-              <div style="display: flex; justify-content: center; margin-bottom: 16px;">
-                <!-- SVG Donut in Shades of Brown -->
-                <svg width="170" height="170" viewBox="0 0 100 100">
-                  <!-- Segment 1: Evening Gowns 42% -> 132 deg -->
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#E8DED7" stroke-width="14"></circle>
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#3A2118" stroke-width="14"
-                          stroke-dasharray="100 238" stroke-dashoffset="0" transform="rotate(-90 50 50)"></circle>
-                  <!-- Segment 2: Outerwear 26% -> 62 -->
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#6B4636" stroke-width="14"
-                          stroke-dasharray="62 238" stroke-dashoffset="-100" transform="rotate(-90 50 50)"></circle>
-                  <!-- Segment 3: Bridal 18% -> 43 -->
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#9A7563" stroke-width="14"
-                          stroke-dasharray="43 238" stroke-dashoffset="-162" transform="rotate(-90 50 50)"></circle>
-                  <!-- Segment 4: Separates 14% -> 33 -->
-                  <circle cx="50" cy="50" r="38" fill="none" stroke="#D5C5B9" stroke-width="14"
-                          stroke-dasharray="33 238" stroke-dashoffset="-205" transform="rotate(-90 50 50)"></circle>
-                  <!-- Center text -->
-                  <text x="50" y="47" text-anchor="middle" font-family="'Playfair Display', serif" font-size="12" fill="#3A2118" font-weight="bold">28</text>
-                  <text x="50" y="58" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="5" fill="#806B61" letter-spacing="0.5">PIECES</text>
-                </svg>
+              <div style="display: flex; justify-content: center; margin-bottom: 16px;" id="donut-chart-svg-wrap">
+                <!-- SVG dynamically injected via renderDonutChart() -->
               </div>
 
               <!-- Legend -->
@@ -1219,7 +1201,7 @@
       initSecurityPinSystem();
       renderKPIs();
       renderRevenueChartSVG();
-      renderCategoryLegend();
+      renderDonutChart();
       renderDashboardOrders();
       renderClients();
       renderInvoices();
@@ -1248,10 +1230,48 @@
       document.getElementById(id).classList.remove('active');
     }
 
-    // Render KPI Metrics
+    // Render Dynamic KPI Metrics based on live orders
     function renderKPIs() {
       const container = document.getElementById('kpi-container');
-      container.innerHTML = window.ATELIER_DATA.kpiStats.map(stat => `
+      if (!container) return;
+
+      const orders = window.ATELIER_DATA.orders;
+      const totalGarments = orders.length;
+      const activeGarments = orders.filter(o => o.status !== 'Delivered').length;
+      const inStitchingPieces = orders.filter(o => o.status === 'In Production' || o.status === 'Paid').length;
+      const readyOutfits = orders.filter(o => o.status === 'Ready to Ship').length;
+      const deliveredPieces = orders.filter(o => o.status === 'Delivered').length;
+
+      const capacityPct = Math.min(100, Math.round((inStitchingPieces / 10) * 100));
+
+      const kpis = [
+        {
+          id: "active-orders",
+          title: "Active Orders",
+          value: `${activeGarments} Garments`,
+          change: `${readyOutfits} ready for pickup`,
+          subtext: `Total ${totalGarments} boutique orders`,
+          icon: "layers"
+        },
+        {
+          id: "atelier-capacity",
+          title: "In Stitching",
+          value: `${inStitchingPieces} Pieces`,
+          change: `${capacityPct}% workshop capacity`,
+          subtext: "Active on tailoring tables",
+          icon: "scissors"
+        },
+        {
+          id: "ready-dispatch",
+          title: "Ready for Pickup / Dispatch",
+          value: `${readyOutfits} Outfits`,
+          change: `${deliveredPieces} delivered successfully`,
+          subtext: "Ironed, packaged & ready",
+          icon: "package"
+        }
+      ];
+
+      container.innerHTML = kpis.map(stat => `
         <div class="kpi-card">
           <div class="kpi-header">
             <span class="kpi-title">${stat.title}</span>
@@ -1264,17 +1284,26 @@
           <div class="kpi-subtext" style="margin-top: 3px;">${stat.subtext}</div>
         </div>
       `).join('');
+
+      lucide.createIcons();
     }
 
-    // Render Pure Monochromatic Brown/Beige SVG Chart
+    // Render Pure Monochromatic Brown/Beige SVG Chart with dynamic latest orders
     function renderRevenueChartSVG() {
       const chartWrap = document.getElementById('revenue-chart-svg-wrap');
-      const amounts = window.ATELIER_DATA.revenueChart.amounts; // [24, 28, 26, 34, 38, 42] orders
+      if (!chartWrap) return;
+      const amounts = [...window.ATELIER_DATA.revenueChart.amounts];
+      const currentMonthOrders = 42 + Math.max(0, window.ATELIER_DATA.orders.length - 8);
+      amounts[amounts.length - 1] = currentMonthOrders;
+
+      const sepLabel = document.getElementById('current-month-orders-label');
+      if (sepLabel) {
+        sepLabel.textContent = `Sep: ${currentMonthOrders} (+16%)`;
+      }
+
       const maxVal = Math.max(...amounts) * 1.15;
       const minVal = Math.min(...amounts) * 0.75;
       
-      // Calculate coordinates for SVG path
-      // Width: 600, Height: 200
       const width = 600;
       const height = 180;
       const padding = 30;
@@ -1286,7 +1315,6 @@
         return { x, y, val };
       });
 
-      // Construct Smooth SVG Path
       let pathD = `M ${points[0].x} ${points[0].y}`;
       for (let i = 1; i < points.length; i++) {
         const prev = points[i - 1];
@@ -1298,31 +1326,21 @@
         pathD += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${curr.x} ${curr.y}`;
       }
 
-      // Area fill path
       const areaD = `${pathD} L ${points[points.length - 1].x} ${height - padding} L ${points[0].x} ${height - padding} Z`;
 
       chartWrap.innerHTML = `
         <svg viewBox="0 0 ${width} ${height}" style="width: 100%; height: 100%; overflow: visible;">
           <defs>
-            <!-- Brown gradient exclusively -->
             <linearGradient id="brownGradient" x1="0%" y1="0%" x2="0%" y2="100%">
               <stop offset="0%" stop-color="#3A2118" stop-opacity="0.22" />
               <stop offset="100%" stop-color="#FAF8F6" stop-opacity="0.0" />
             </linearGradient>
           </defs>
-
-          <!-- Horizontal guideline grid in light beige -->
           <line x1="${padding}" y1="${padding}" x2="${width - padding}" y2="${padding}" stroke="#E8DED7" stroke-dasharray="4 4" stroke-width="1" />
           <line x1="${padding}" y1="${height/2}" x2="${width - padding}" y2="${height/2}" stroke="#E8DED7" stroke-dasharray="4 4" stroke-width="1" />
           <line x1="${padding}" y1="${height - padding}" x2="${width - padding}" y2="${height - padding}" stroke="#E8DED7" stroke-width="1" />
-
-          <!-- Filled Area in Subtle Warm Brown Gradient -->
           <path d="${areaD}" fill="url(#brownGradient)" />
-
-          <!-- Main Stroke in Deep Espresso Brown #3A2118 -->
           <path d="${pathD}" fill="none" stroke="#3A2118" stroke-width="2.5" stroke-linecap="round" />
-
-          <!-- Data Points with Beige Fill and Deep Brown Border -->
           ${points.map(p => `
             <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#FAF8F6" stroke="#3A2118" stroke-width="2.5" style="cursor: pointer;" />
             <text x="${p.x}" y="${p.y - 10}" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="10" font-weight="600" fill="#3A2118">${p.val}</text>
@@ -1331,18 +1349,74 @@
       `;
     }
 
-    // Render Silhouette Category Legend
-    function renderCategoryLegend() {
-      const container = document.getElementById('category-legend');
-      container.innerHTML = window.ATELIER_DATA.categoryBreakdown.map(item => `
-        <div class="donut-legend-item">
-          <div style="display: flex; align-items: center;">
-            <span class="donut-color-dot" style="background: ${item.color};"></span>
-            <span style="color: var(--text-dark-brown); font-weight: 500;">${item.label}</span>
-          </div>
-          <span style="font-weight: 600; color: var(--primary-brown);">${item.percentage}%</span>
-        </div>
-      `).join('');
+    // Render Dynamic Donut Chart & Category Pieces Breakdown
+    function renderDonutChart() {
+      const chartWrap = document.getElementById('donut-chart-svg-wrap');
+      if (!chartWrap) return;
+
+      const orders = window.ATELIER_DATA.orders;
+      const totalPieces = orders.length;
+
+      const groups = [
+        { label: "Dresses & Co-ords", color: "#3A2118", match: (c) => c === 'Dresses' || c === 'Co-ords' || c.includes('Dress') || c.includes('Co-ord') },
+        { label: "Kurtas & Festive Sets", color: "#6B4636", match: (c) => c === 'Kurtas' || c === 'Festive Wear' || c.includes('Kurta') || c.includes('Festive') },
+        { label: "Custom Tailored Fits", color: "#9A7563", match: (c) => c === 'Custom Fits' || c === 'Outerwear' || c.includes('Custom') },
+        { label: "Tops & Separates", color: "#D5C5B9", match: () => true }
+      ];
+
+      const counts = [0, 0, 0, 0];
+      orders.forEach(o => {
+        const cat = o.category || '';
+        if (groups[0].match(cat)) counts[0]++;
+        else if (groups[1].match(cat)) counts[1]++;
+        else if (groups[2].match(cat)) counts[2]++;
+        else counts[3]++;
+      });
+
+      const C = 238.76; // 2 * PI * 38
+      let cumulativeOffset = 0;
+      const segmentsSvg = groups.map((g, idx) => {
+        const count = counts[idx];
+        if (count === 0 || totalPieces === 0) return '';
+        const fraction = count / totalPieces;
+        const dash = (fraction * C).toFixed(1);
+        const strokeDash = `${dash} ${(C - dash).toFixed(1)}`;
+        const strokeOffset = (-cumulativeOffset).toFixed(1);
+        cumulativeOffset += parseFloat(dash);
+
+        return `<circle cx="50" cy="50" r="38" fill="none" stroke="${g.color}" stroke-width="14"
+                  stroke-dasharray="${strokeDash}" stroke-dashoffset="${strokeOffset}"
+                  transform="rotate(-90 50 50)" style="transition: stroke-dasharray 0.4s ease;"></circle>`;
+      }).join('');
+
+      chartWrap.innerHTML = `
+        <svg width="170" height="170" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#E8DED7" stroke-width="14"></circle>
+          ${segmentsSvg}
+          <text x="50" y="47" text-anchor="middle" font-family="'Playfair Display', serif" font-size="12" fill="#3A2118" font-weight="bold">${totalPieces}</text>
+          <text x="50" y="58" text-anchor="middle" font-family="'Plus Jakarta Sans', sans-serif" font-size="5" fill="#806B61" letter-spacing="0.5">PIECES</text>
+        </svg>
+      `;
+
+      // Dynamic Category Legend with Live Pieces & Percentages
+      const legend = document.getElementById('category-legend');
+      if (legend) {
+        legend.innerHTML = groups.map((g, idx) => {
+          const count = counts[idx];
+          const pct = totalPieces > 0 ? Math.round((count / totalPieces) * 100) : 0;
+          return `
+            <div class="donut-legend-item">
+              <div style="display: flex; align-items: center;">
+                <span class="donut-color-dot" style="background: ${g.color};"></span>
+                <span style="color: var(--text-dark-brown); font-weight: 500;">${g.label}</span>
+              </div>
+              <span style="font-weight: 600; color: var(--primary-brown); font-size: 0.82rem;">
+                ${count} pieces <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">(${pct}%)</span>
+              </span>
+            </div>
+          `;
+        }).join('');
+      }
     }
 
     // Helper for Status Badge HTML matching EXACT prompt rules
@@ -1546,6 +1620,8 @@
         
         renderDashboardOrders();
         renderInvoices();
+        renderKPIs();
+        renderDonutChart();
         openOrderDetailModal(orderId);
         showToast(`Order ${orderId} updated to ${newStatus}`);
       }
@@ -1834,10 +1910,13 @@
         showToast(`Order ${newId} created for ${clientName} with custom size & fabric!`);
       }
 
-      // Re-render UI views
+      // Re-render UI views dynamically
       renderDashboardOrders();
       renderClients();
       renderInvoices();
+      renderKPIs();
+      renderDonutChart();
+      renderRevenueChartSVG();
       populateClientsDatalist();
 
       closeModal('modal-order-size-fabric');
