@@ -367,6 +367,16 @@
         </div>
       </a>
 
+      <div class="nav-section-title">Financials &amp; P&amp;L</div>
+
+      <a class="nav-item" data-tab="expenses" href="javascript:void(0)" onclick="switchTab('expenses')">
+        <div class="nav-item-content">
+          <i data-lucide="trending-up"></i>
+          <span>Expenses &amp; P&amp;L</span>
+        </div>
+        <span class="nav-badge-pill" id="badge-profit-pill">Profit Live</span>
+      </a>
+
       <div class="nav-section-title">Studio Config</div>
 
       <a class="nav-item" data-tab="settings" href="javascript:void(0)" onclick="switchTab('settings')">
@@ -427,6 +437,12 @@
         <button class="btn-secondary" onclick="exportReport()">
           <i data-lucide="download" style="width: 15px; height: 15px;"></i>
           <span>Export Ledger</span>
+        </button>
+
+        <!-- Log Expense / Loss Action -->
+        <button class="btn-secondary" onclick="openExpenseModal()" style="display: flex; align-items: center; gap: 6px;">
+          <i data-lucide="credit-card" style="width: 14px; height: 14px;"></i>
+          <span>+ Log Expense / Loss</span>
         </button>
 
         <!-- Primary Action: New Order (Size & Fabric) -->
@@ -506,6 +522,54 @@
               <!-- Legend -->
               <div id="category-legend">
                 <!-- Injected via JS -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Studio Financial Performance & P&L Snapshot on Dashboard -->
+        <div class="atelier-card" style="margin-bottom: 24px;">
+          <div class="atelier-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <span style="font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Studio Financial Health</span>
+              <h3 style="font-size: 1.15rem; color: var(--primary-brown); margin-top: 2px;">Profit &amp; Loss Overview</h3>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button class="btn-secondary" onclick="openExpenseModal()" style="font-size: 0.78rem; padding: 6px 12px;">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                <span>+ Log Expense / Loss</span>
+              </button>
+              <button class="btn-secondary" onclick="switchTab('expenses')" style="font-size: 0.78rem; padding: 6px 12px;">
+                <span>Full P&amp;L Ledger</span>
+                <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
+              </button>
+            </div>
+          </div>
+          <div class="atelier-card-body" style="padding-top: 10px;">
+            <div class="financial-grid" style="margin-bottom: 0;">
+              <!-- Revenue -->
+              <div class="financial-card" style="padding: 16px;">
+                <span class="fin-title">Total Revenue</span>
+                <div class="fin-value" id="dash-fin-rev" style="font-size: 1.45rem; margin-top: 6px;">&#8377;0</div>
+                <span class="fin-subtext">Boutique orders placed</span>
+              </div>
+              <!-- Expenses -->
+              <div class="financial-card" style="padding: 16px;">
+                <span class="fin-title">Operating Expenses</span>
+                <div class="fin-value" id="dash-fin-exp" style="font-size: 1.45rem; margin-top: 6px;">&#8377;0</div>
+                <span class="fin-subtext">Fabric, labor &amp; utilities</span>
+              </div>
+              <!-- Loss -->
+              <div class="financial-card card-loss" style="padding: 16px;">
+                <span class="fin-title" style="color: #8B3A2B;">Loss &amp; Spoilage</span>
+                <div class="fin-value text-loss" id="dash-fin-loss" style="font-size: 1.45rem; margin-top: 6px;">&#8377;0</div>
+                <span class="fin-subtext">Scraps &amp; alteration waste</span>
+              </div>
+              <!-- Net Profit -->
+              <div class="financial-card card-profit" style="padding: 16px;">
+                <span class="fin-title" style="color: var(--primary-brown);">Net Studio Profit</span>
+                <div class="fin-value text-profit" id="dash-fin-profit" style="font-size: 1.45rem; margin-top: 6px;">&#8377;0</div>
+                <span class="fin-subtext" id="dash-fin-margin">0% Atelier Margin</span>
               </div>
             </div>
           </div>
@@ -610,6 +674,160 @@
                 </thead>
                 <tbody id="invoices-table-body">
                   <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           VIEW: EXPENSES, LOSS & PROFIT (P&L LEDGER)
+           ==================================================================== -->
+      <section id="view-expenses" class="tab-view">
+        <div style="display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 14px;">
+          <div>
+            <span style="font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">Boutique Accounting &amp; Ledger</span>
+            <h2 style="font-size: 1.85rem; font-weight: 600; color: var(--primary-brown); margin-top: 2px;">Expenses, Loss &amp; Net Profit</h2>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" onclick="exportReport()">
+              <i data-lucide="download" style="width: 15px; height: 15px;"></i>
+              <span>Export P&amp;L Statement</span>
+            </button>
+            <button class="btn-primary" onclick="openExpenseModal()">
+              <i data-lucide="plus" style="width: 15px; height: 15px;"></i>
+              <span>+ Log Expense / Loss</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Financial Summary Cards -->
+        <div class="financial-grid" id="financial-summary-cards">
+          <!-- Card 1: Revenue -->
+          <div class="financial-card">
+            <div class="fin-header">
+              <span class="fin-title">Total Revenue</span>
+              <div class="fin-icon-wrap"><i data-lucide="trending-up" style="width: 16px; height: 16px;"></i></div>
+            </div>
+            <div class="fin-value" id="fin-revenue-val">&#8377;0</div>
+            <div class="fin-subtext" id="fin-revenue-subtext">Total boutique sales &amp; custom orders</div>
+          </div>
+
+          <!-- Card 2: Operating Expenses -->
+          <div class="financial-card">
+            <div class="fin-header">
+              <span class="fin-title">Operating Expenses</span>
+              <div class="fin-icon-wrap"><i data-lucide="credit-card" style="width: 16px; height: 16px;"></i></div>
+            </div>
+            <div class="fin-value" id="fin-expense-val">&#8377;0</div>
+            <div class="fin-subtext" id="fin-expense-subtext">Fabric, tailor wages &amp; utilities</div>
+          </div>
+
+          <!-- Card 3: Material Loss & Spoilage -->
+          <div class="financial-card card-loss">
+            <div class="fin-header">
+              <span class="fin-title" style="color: #8B3A2B;">Loss &amp; Spoilage</span>
+              <div class="fin-icon-wrap" style="color: #8B3A2B; border-color: #E6C8C3;"><i data-lucide="alert-triangle" style="width: 16px; height: 16px;"></i></div>
+            </div>
+            <div class="fin-value text-loss" id="fin-loss-val">&#8377;0</div>
+            <div class="fin-subtext" id="fin-loss-subtext">Cutting waste &amp; defect scrap losses</div>
+          </div>
+
+          <!-- Card 4: Net Studio Profit -->
+          <div class="financial-card card-profit">
+            <div class="fin-header">
+              <span class="fin-title" style="color: var(--primary-brown);">Net Studio Profit</span>
+              <div class="fin-icon-wrap" style="background: var(--primary-brown); color: var(--bg-pure-white);"><i data-lucide="sparkles" style="width: 16px; height: 16px;"></i></div>
+            </div>
+            <div class="fin-value text-profit" id="fin-profit-val">&#8377;0</div>
+            <div class="fin-subtext" id="fin-profit-subtext">0% Net Margin • Live Atelier Health</div>
+          </div>
+        </div>
+
+        <!-- Profit & Loss Analytics Row -->
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; margin-bottom: 24px;">
+          <!-- Cashflow & Margin Distribution -->
+          <div class="atelier-card">
+            <div class="atelier-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: var(--primary-brown);">P&amp;L Cashflow Distribution</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Proportional split of Boutique Revenue into Outflows and Profit</p>
+              </div>
+              <span class="status-badge status-paid" id="pnl-status-pill">Profitable</span>
+            </div>
+            <div class="atelier-card-body">
+              <div class="pnl-bar-wrap">
+                <div class="pnl-bar-expense" id="pnl-bar-exp" style="width: 50%;"></div>
+                <div class="pnl-bar-loss" id="pnl-bar-loss" style="width: 5%;"></div>
+                <div class="pnl-bar-profit" id="pnl-bar-profit" style="width: 45%;"></div>
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-muted); margin-top: 10px; flex-wrap: wrap; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--secondary-brown);"></span>
+                  <span>Expenses: <strong id="pnl-exp-pct">0%</strong></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 10px; height: 10px; border-radius: 2px; background: #8B3A2B;"></span>
+                  <span>Loss/Waste: <strong id="pnl-loss-pct">0%</strong></span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="width: 10px; height: 10px; border-radius: 2px; background: var(--primary-brown);"></span>
+                  <span>Net Profit: <strong id="pnl-profit-pct">0%</strong></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Outflow Category Breakdown -->
+          <div class="atelier-card">
+            <div class="atelier-card-header">
+              <div>
+                <h3 style="font-size: 1.15rem; color: var(--primary-brown);">Outflow by Category</h3>
+                <p style="font-size: 0.75rem; color: var(--text-muted);">Where boutique funds are deployed</p>
+              </div>
+              <i data-lucide="pie-chart" style="width: 18px; height: 18px; color: var(--secondary-brown);"></i>
+            </div>
+            <div class="atelier-card-body" id="category-outflows-wrap" style="display: flex; flex-direction: column; gap: 10px;">
+              <!-- Injected via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Expenses & Loss Ledger Table -->
+        <div class="atelier-card">
+          <div class="atelier-card-header" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div>
+              <h3 style="font-size: 1.15rem; color: var(--primary-brown);">Expenses &amp; Loss Ledger</h3>
+              <p style="font-size: 0.75rem; color: var(--text-muted);">All recorded operational outflows, tailor payouts, and scrap losses</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <button class="expenses-filter-btn active" id="btn-filter-all-exp" onclick="filterExpensesTable('ALL')">All Records</button>
+              <button class="expenses-filter-btn" id="btn-filter-only-exp" onclick="filterExpensesTable('Expense')">Expenses Only</button>
+              <button class="expenses-filter-btn" id="btn-filter-only-loss" onclick="filterExpensesTable('Loss')">Loss &amp; Waste Only</button>
+              <button class="btn-primary" onclick="openExpenseModal()" style="font-size: 0.78rem; padding: 6px 12px;">
+                <i data-lucide="plus" style="width: 14px; height: 14px;"></i>
+                <span>+ Add Entry</span>
+              </button>
+            </div>
+          </div>
+          <div class="atelier-card-body" style="padding: 0;">
+            <div class="atelier-table-wrap">
+              <table class="atelier-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Ref #</th>
+                    <th>Category</th>
+                    <th>Description &amp; Notes</th>
+                    <th>Type</th>
+                    <th>Payment Mode</th>
+                    <th style="text-align: right;">Amount (₹ INR)</th>
+                    <th style="text-align: center;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="expenses-table-body">
+                  <!-- Injected via JS -->
                 </tbody>
               </table>
             </div>
@@ -1007,6 +1225,103 @@
   </div>
 
   <!-- ==========================================================================
+       MODAL: LOG EXPENSE OR MATERIAL LOSS
+       ========================================================================== -->
+  <div class="atelier-modal-backdrop" id="modal-expense">
+    <div class="atelier-modal-box" style="max-width: 600px;">
+      <div class="atelier-modal-header">
+        <div>
+          <span style="font-size: 0.68rem; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); font-weight: 600;">MIFKA Studio Accounting</span>
+          <h3 id="modal-expense-title" style="font-size: 1.35rem; color: var(--primary-brown); margin-top: 2px;">Log Expense or Material Loss</h3>
+        </div>
+        <button type="button" class="btn-icon" onclick="closeModal('modal-expense')" style="border: none;">
+          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+        </button>
+      </div>
+
+      <form id="form-expense-loss" onsubmit="handleSaveExpense(event)" style="display: flex; flex-direction: column;">
+        <div class="atelier-modal-body" style="padding: 24px; gap: 18px; display: flex; flex-direction: column;">
+          
+          <!-- Record Type Toggle -->
+          <div>
+            <label class="form-label" style="margin-bottom: 8px;">Record Type *</label>
+            <div class="type-pills-wrap">
+              <button type="button" class="type-pill active" id="btn-type-expense" onclick="selectExpenseType('Expense')">
+                <i data-lucide="credit-card" style="width: 14px; height: 14px;"></i>
+                <span>Operating Expense</span>
+              </button>
+              <button type="button" class="type-pill" id="btn-type-loss" onclick="selectExpenseType('Loss')">
+                <i data-lucide="alert-triangle" style="width: 14px; height: 14px;"></i>
+                <span>Material Loss / Spoilage</span>
+              </button>
+            </div>
+            <input type="hidden" id="exp-type" value="Expense">
+          </div>
+
+          <!-- Description / Title -->
+          <div>
+            <label class="form-label" for="exp-title">Description / Title *</label>
+            <input type="text" id="exp-title" class="form-input" placeholder="e.g. Linen Fabric Roll, Master Tailor Wages, Scrap Loss" required>
+          </div>
+
+          <!-- Category & Payment Mode -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <label class="form-label" for="exp-category">Category *</label>
+              <select id="exp-category" class="form-select" required>
+                <option value="Fabric & Material">Fabric &amp; Material Procurement</option>
+                <option value="Tailor Wages & Labor">Tailor Wages &amp; Labor</option>
+                <option value="Trims & Accessories">Trims, Buttons &amp; Zari Thread</option>
+                <option value="Workshop Utilities">Workshop Utilities &amp; Rent</option>
+                <option value="Packaging & Dispatch">Packaging &amp; Dispatch</option>
+                <option value="Material Loss & Spoilage">Material Loss &amp; Spoilage</option>
+                <option value="Alteration & Waste">Alteration &amp; Cutting Waste</option>
+                <option value="Other Boutique Expense">Other Studio Expense</option>
+              </select>
+            </div>
+            <div>
+              <label class="form-label" for="exp-payment-mode">Payment Mode</label>
+              <select id="exp-payment-mode" class="form-select">
+                <option value="UPI / GPay">UPI / GPay</option>
+                <option value="Cash">Cash on Counter</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Internal Loss">Internal Loss / Write-off</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Amount and Date -->
+          <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 14px;">
+            <div>
+              <label class="form-label" for="exp-amount">Amount (₹ INR) *</label>
+              <input type="number" id="exp-amount" class="form-input inr-currency" placeholder="e.g. 1500" min="1" step="10" required>
+            </div>
+            <div>
+              <label class="form-label" for="exp-date">Date *</label>
+              <input type="date" id="exp-date" class="form-input" required>
+            </div>
+          </div>
+
+          <!-- Notes / Reference -->
+          <div>
+            <label class="form-label" for="exp-notes">Notes / Order or Vendor Reference</label>
+            <input type="text" id="exp-notes" class="form-input" placeholder="e.g. Surat weaver bill, or tied to ORD-103">
+          </div>
+
+        </div>
+
+        <div class="atelier-modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal('modal-expense')">Cancel</button>
+          <button type="submit" class="btn-primary" style="display: flex; align-items: center; gap: 6px;">
+            <i data-lucide="check" style="width: 15px; height: 15px;"></i>
+            <span>Save to Ledger</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==========================================================================
        MODAL: ORDER DETAIL & MEASUREMENT DRAWER
        ========================================================================== -->
   <div class="atelier-modal-backdrop" id="modal-order-detail">
@@ -1234,6 +1549,7 @@
         atelierInfo: { name: "MIFKA", tagline: "Clothing Boutique & Custom Tailoring", currencySymbol: "₹" },
         orders: [],
         clients: [],
+        expenses: [],
         revenueChart: { months: ["Apr", "May", "Jun", "Jul", "Aug", "Sep"], amounts: [24, 28, 26, 34, 38, 42] }
       };
     }
@@ -1255,7 +1571,18 @@
     // Initialize application on DOM load with isolated try-catch blocks
     document.addEventListener('DOMContentLoaded', () => {
       try { initSecurityPinSystem(); } catch (e) { console.error('PIN init error:', e); }
+      try {
+        const storedExp = safeStorageGet('mifka_expenses');
+        if (storedExp) {
+          const parsed = JSON.parse(storedExp);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            window.ATELIER_DATA.expenses = parsed;
+          }
+        }
+      } catch (e) { console.error('Stored expenses parse error:', e); }
       try { renderKPIs(); } catch (e) { console.error('KPI error:', e); }
+      try { renderFinancials(); } catch (e) { console.error('Financials error:', e); }
+      try { renderExpensesTable('ALL'); } catch (e) { console.error('Expenses table error:', e); }
       try { renderRevenueChartSVG(); } catch (e) { console.error('Revenue SVG error:', e); }
       try { renderDonutChart(); } catch (e) { console.error('Donut error:', e); }
       try { renderDashboardOrders(); } catch (e) { console.error('Orders error:', e); }
@@ -1684,6 +2011,7 @@
         renderInvoices();
         renderKPIs();
         renderDonutChart();
+        renderFinancials();
         openOrderDetailModal(orderId);
         showToast(`Order ${orderId} updated to ${newStatus}`);
       }
@@ -1980,6 +2308,7 @@
       try { renderDonutChart(); } catch(err) { console.error('Donut error:', err); }
       try { renderRevenueChartSVG(); } catch(err) { console.error('Revenue error:', err); }
       try { populateClientsDatalist(); } catch(err) { console.error('Datalist error:', err); }
+      try { renderFinancials(); } catch(err) { console.error('Financials error:', err); }
 
       closeModal('modal-order-size-fabric');
       safeCreateIcons();
@@ -1992,6 +2321,339 @@
       setTimeout(() => {
         openOrderSizeFabricModal(null, selectedOrderId);
       }, 150);
+    }
+
+    // =========================================================================
+    // EXPENSES, MATERIAL LOSS & PROFIT (P&L) MANAGEMENT
+    // =========================================================================
+    let currentExpenseFilter = 'ALL';
+
+    function calculateFinancials() {
+      const orders = window.ATELIER_DATA.orders || [];
+      const expenses = window.ATELIER_DATA.expenses || [];
+
+      const totalRevenue = orders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
+      const totalExpenses = expenses
+        .filter(e => e.type === 'Expense')
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const totalLoss = expenses
+        .filter(e => e.type === 'Loss')
+        .reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+      const totalOutflows = totalExpenses + totalLoss;
+      const netProfit = totalRevenue - totalOutflows;
+      const profitMargin = totalRevenue > 0 ? Math.round((netProfit / totalRevenue) * 100) : 0;
+
+      return {
+        totalRevenue,
+        totalExpenses,
+        totalLoss,
+        totalOutflows,
+        netProfit,
+        profitMargin
+      };
+    }
+
+    function renderFinancials() {
+      const fin = calculateFinancials();
+
+      // 1. Update Executive Dashboard Cards
+      const dashRev = document.getElementById('dash-fin-rev');
+      if (dashRev) dashRev.innerHTML = formatINR(fin.totalRevenue);
+      const dashExp = document.getElementById('dash-fin-exp');
+      if (dashExp) dashExp.innerHTML = formatINR(fin.totalExpenses);
+      const dashLoss = document.getElementById('dash-fin-loss');
+      if (dashLoss) dashLoss.innerHTML = formatINR(fin.totalLoss);
+      const dashProfit = document.getElementById('dash-fin-profit');
+      if (dashProfit) {
+        dashProfit.innerHTML = (fin.netProfit < 0 ? '-' : '') + formatINR(Math.abs(fin.netProfit));
+        dashProfit.className = fin.netProfit >= 0 ? 'fin-value text-profit' : 'fin-value text-loss';
+      }
+      const dashMargin = document.getElementById('dash-fin-margin');
+      if (dashMargin) dashMargin.textContent = `${fin.profitMargin}% Atelier Net Margin`;
+
+      // 2. Update Expenses & P&L View KPI Cards
+      const finRev = document.getElementById('fin-revenue-val');
+      if (finRev) finRev.innerHTML = formatINR(fin.totalRevenue);
+      const finRevSub = document.getElementById('fin-revenue-subtext');
+      if (finRevSub) finRevSub.textContent = `${(window.ATELIER_DATA.orders || []).length} boutique orders recorded`;
+
+      const finExp = document.getElementById('fin-expense-val');
+      if (finExp) finExp.innerHTML = formatINR(fin.totalExpenses);
+      const finExpSub = document.getElementById('fin-expense-subtext');
+      if (finExpSub) {
+        const expCount = (window.ATELIER_DATA.expenses || []).filter(e => e.type === 'Expense').length;
+        finExpSub.textContent = `${expCount} operating expense entries`;
+      }
+
+      const finLoss = document.getElementById('fin-loss-val');
+      if (finLoss) finLoss.innerHTML = formatINR(fin.totalLoss);
+      const finLossSub = document.getElementById('fin-loss-subtext');
+      if (finLossSub) {
+        const lossCount = (window.ATELIER_DATA.expenses || []).filter(e => e.type === 'Loss').length;
+        finLossSub.textContent = `${lossCount} loss & scrap write-offs`;
+      }
+
+      const finProfit = document.getElementById('fin-profit-val');
+      if (finProfit) {
+        finProfit.innerHTML = (fin.netProfit < 0 ? '-' : '') + formatINR(Math.abs(fin.netProfit));
+        finProfit.className = fin.netProfit >= 0 ? 'fin-value text-profit' : 'fin-value text-loss';
+      }
+      const finProfitSub = document.getElementById('fin-profit-subtext');
+      if (finProfitSub) {
+        finProfitSub.textContent = `${fin.profitMargin}% Net Margin • ${fin.netProfit >= 0 ? 'Healthy Studio Surplus' : 'Operating Deficit'}`;
+      }
+
+      // 3. Update P&L Cashflow Distribution Bar
+      const expBar = document.getElementById('pnl-bar-exp');
+      const lossBar = document.getElementById('pnl-bar-loss');
+      const profitBar = document.getElementById('pnl-bar-profit');
+      const expPctEl = document.getElementById('pnl-exp-pct');
+      const lossPctEl = document.getElementById('pnl-loss-pct');
+      const profitPctEl = document.getElementById('pnl-profit-pct');
+      const statusPill = document.getElementById('pnl-status-pill');
+
+      const totalRev = Math.max(1, fin.totalRevenue);
+      const expPct = Math.min(100, Math.round((fin.totalExpenses / totalRev) * 100));
+      const lossPct = Math.min(100 - expPct, Math.round((fin.totalLoss / totalRev) * 100));
+      const profitPct = Math.max(0, 100 - expPct - lossPct);
+
+      if (expBar) expBar.style.width = `${expPct}%`;
+      if (lossBar) lossBar.style.width = `${lossPct}%`;
+      if (profitBar) profitBar.style.width = `${profitPct}%`;
+
+      if (expPctEl) expPctEl.textContent = `${expPct}%`;
+      if (lossPctEl) lossPctEl.textContent = `${lossPct}%`;
+      if (profitPctEl) profitPctEl.textContent = `${profitPct}%`;
+
+      if (statusPill) {
+        if (fin.netProfit >= 0) {
+          statusPill.className = 'status-badge status-paid';
+          statusPill.textContent = `Profitable (${fin.profitMargin}%)`;
+        } else {
+          statusPill.className = 'status-badge status-loss';
+          statusPill.textContent = `Deficit (${fin.profitMargin}%)`;
+        }
+      }
+
+      // 4. Update Sidebar Badge
+      const sidebarBadge = document.getElementById('badge-profit-pill');
+      if (sidebarBadge) {
+        sidebarBadge.textContent = fin.netProfit >= 0 ? `+₹${Math.round(fin.netProfit / 1000)}k Profit` : `-₹${Math.round(Math.abs(fin.netProfit) / 1000)}k Deficit`;
+      }
+
+      // 5. Render Category Outflow Breakdown
+      renderOutflowCategoryBreakdown(fin.totalOutflows);
+
+      safeCreateIcons();
+    }
+
+    function renderOutflowCategoryBreakdown(totalOutflows) {
+      const wrap = document.getElementById('category-outflows-wrap');
+      if (!wrap) return;
+
+      const expenses = window.ATELIER_DATA.expenses || [];
+      const catTotals = {};
+      expenses.forEach(e => {
+        const c = e.category || 'Other Boutique Expense';
+        catTotals[c] = (catTotals[c] || 0) + (Number(e.amount) || 0);
+      });
+
+      const categories = Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]);
+
+      const catColors = {
+        'Fabric & Material': '#3A2118',
+        'Tailor Wages & Labor': '#6B4636',
+        'Trims & Accessories': '#9A7563',
+        'Workshop Utilities': '#806B61',
+        'Packaging & Dispatch': '#B59E90',
+        'Material Loss & Spoilage': '#8B3A2B',
+        'Alteration & Waste': '#A04D3E',
+        'Other Boutique Expense': '#C4B5A5'
+      };
+
+      if (categories.length === 0 || totalOutflows === 0) {
+        wrap.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 12px;">No outflows recorded yet.</div>`;
+        return;
+      }
+
+      wrap.innerHTML = categories.map(cat => {
+        const amt = catTotals[cat];
+        const pct = Math.round((amt / totalOutflows) * 100);
+        const color = catColors[cat] || '#6B4636';
+        return `
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px;">
+              <span style="color: var(--text-dark-brown); font-weight: 500;">${cat}</span>
+              <span style="font-weight: 600; color: var(--primary-brown); font-size: 0.82rem;">${formatINR(amt)} <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">(${pct}%)</span></span>
+            </div>
+            <div style="height: 6px; background: #FAF8F6; border: 1px solid var(--border-beige); border-radius: 3px; overflow: hidden;">
+              <div style="height: 100%; width: ${pct}%; background: ${color}; border-radius: 2px; transition: width 0.3s ease;"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterExpensesTable(filterType) {
+      currentExpenseFilter = filterType;
+      document.querySelectorAll('.expenses-filter-btn').forEach(btn => btn.classList.remove('active'));
+      if (filterType === 'ALL') {
+        const b = document.getElementById('btn-filter-all-exp');
+        if (b) b.classList.add('active');
+      } else if (filterType === 'Expense') {
+        const b = document.getElementById('btn-filter-only-exp');
+        if (b) b.classList.add('active');
+      } else if (filterType === 'Loss') {
+        const b = document.getElementById('btn-filter-only-loss');
+        if (b) b.classList.add('active');
+      }
+      renderExpensesTable(filterType);
+    }
+
+    function renderExpensesTable(filterType = currentExpenseFilter) {
+      const tbody = document.getElementById('expenses-table-body');
+      if (!tbody) return;
+
+      const allExpenses = window.ATELIER_DATA.expenses || [];
+      const filtered = allExpenses.filter(e => {
+        if (filterType === 'Expense') return e.type === 'Expense';
+        if (filterType === 'Loss') return e.type === 'Loss';
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; padding: 32px; color: var(--text-muted); font-size: 0.85rem;">No entries found for this filter view.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(item => {
+        const isLoss = item.type === 'Loss';
+        const badgeHtml = isLoss 
+          ? `<span class="status-badge status-loss"><i data-lucide="alert-triangle" style="width: 11px; height: 11px;"></i> Material Loss</span>`
+          : `<span class="status-badge status-expense"><i data-lucide="credit-card" style="width: 11px; height: 11px;"></i> Expense</span>`;
+        
+        const paymentModeBadge = item.paymentMode === 'Internal Loss'
+          ? `<span style="font-size: 0.72rem; color: #8B3A2B; background: #FAF2F0; padding: 2px 7px; border-radius: 4px; border: 1px solid #E6C8C3;">Internal Loss</span>`
+          : `<span style="font-size: 0.72rem; color: var(--secondary-brown); background: var(--bg-secondary); padding: 2px 7px; border-radius: 4px; border: 1px solid var(--border-beige);">${item.paymentMode || 'Cash'}</span>`;
+
+        return `
+          <tr>
+            <td style="font-size: 0.8rem; color: var(--text-muted); white-space: nowrap;">${item.date}</td>
+            <td><span style="font-family: monospace; font-size: 0.75rem; color: var(--secondary-brown); font-weight: 600;">${item.id}</span></td>
+            <td style="font-weight: 500; font-size: 0.82rem; color: var(--text-dark-brown);">${item.category}</td>
+            <td>
+              <div style="font-weight: 600; font-size: 0.83rem; color: var(--primary-brown);">${item.title}</div>
+              ${item.notes ? `<div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">${item.notes}</div>` : ''}
+            </td>
+            <td>${badgeHtml}</td>
+            <td>${paymentModeBadge}</td>
+            <td style="text-align: right;">
+              <span class="${isLoss ? 'text-loss' : 'text-primary-brown'}" style="font-weight: 700; font-size: 0.9rem;">
+                ${isLoss ? '-' : ''}${formatINR(item.amount)}
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <button class="btn-icon" style="width: 28px; height: 28px; border: none; background: transparent; color: #8B3A2B;" title="Delete ledger entry" onclick="deleteExpense('${item.id}')">
+                <i data-lucide="trash-2" style="width: 14px; height: 14px;"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      safeCreateIcons();
+    }
+
+    function openExpenseModal(presetType = 'Expense') {
+      const today = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('exp-date');
+      if (dateInput) dateInput.value = today;
+
+      const titleInput = document.getElementById('exp-title');
+      if (titleInput) titleInput.value = '';
+      const amountInput = document.getElementById('exp-amount');
+      if (amountInput) amountInput.value = '';
+      const notesInput = document.getElementById('exp-notes');
+      if (notesInput) notesInput.value = '';
+
+      selectExpenseType(presetType);
+      openModal('modal-expense');
+      safeCreateIcons();
+    }
+
+    function selectExpenseType(type) {
+      const btnExp = document.getElementById('btn-type-expense');
+      const btnLoss = document.getElementById('btn-type-loss');
+      const typeInput = document.getElementById('exp-type');
+      const catSelect = document.getElementById('exp-category');
+      const paySelect = document.getElementById('exp-payment-mode');
+
+      if (typeInput) typeInput.value = type;
+
+      if (type === 'Loss') {
+        if (btnExp) btnExp.classList.remove('active', 'active-loss');
+        if (btnLoss) btnLoss.classList.add('active-loss');
+        if (catSelect) catSelect.value = 'Material Loss & Spoilage';
+        if (paySelect) paySelect.value = 'Internal Loss';
+      } else {
+        if (btnLoss) btnLoss.classList.remove('active', 'active-loss');
+        if (btnExp) btnExp.classList.add('active');
+        if (catSelect && (catSelect.value === 'Material Loss & Spoilage' || catSelect.value === 'Alteration & Waste')) {
+          catSelect.value = 'Fabric & Material';
+        }
+        if (paySelect && paySelect.value === 'Internal Loss') {
+          paySelect.value = 'UPI / GPay';
+        }
+      }
+    }
+
+    function handleSaveExpense(e) {
+      e.preventDefault();
+      const title = document.getElementById('exp-title').value.trim();
+      const category = document.getElementById('exp-category').value;
+      const type = document.getElementById('exp-type').value;
+      const paymentMode = document.getElementById('exp-payment-mode').value;
+      const amount = Number(document.getElementById('exp-amount').value) || 0;
+      const date = document.getElementById('exp-date').value || new Date().toISOString().split('T')[0];
+      const notes = document.getElementById('exp-notes').value.trim();
+
+      if (!title || amount <= 0) {
+        showToast('Please provide a valid description and amount.');
+        return;
+      }
+
+      if (!window.ATELIER_DATA.expenses) {
+        window.ATELIER_DATA.expenses = [];
+      }
+
+      const nextIdNum = 100 + window.ATELIER_DATA.expenses.length + 1;
+      const newEntry = {
+        id: `EXP-${nextIdNum}`,
+        title,
+        category,
+        type,
+        amount,
+        date,
+        paymentMode,
+        notes
+      };
+
+      window.ATELIER_DATA.expenses.unshift(newEntry);
+      safeStorageSet('mifka_expenses', JSON.stringify(window.ATELIER_DATA.expenses));
+
+      closeModal('modal-expense');
+      renderFinancials();
+      renderExpensesTable(currentExpenseFilter);
+      showToast(`${type === 'Loss' ? 'Material Loss' : 'Expense'} of ₹${amount.toLocaleString('en-IN')} recorded!`);
+    }
+
+    function deleteExpense(id) {
+      if (!confirm(`Delete ledger entry ${id}?`)) return;
+      window.ATELIER_DATA.expenses = (window.ATELIER_DATA.expenses || []).filter(e => e.id !== id);
+      safeStorageSet('mifka_expenses', JSON.stringify(window.ATELIER_DATA.expenses));
+      renderFinancials();
+      renderExpensesTable(currentExpenseFilter);
+      showToast(`Ledger entry ${id} deleted.`);
     }
 
     // =========================================================================

@@ -299,5 +299,89 @@ window.ATELIER_DATA = {
       measurements: "Shoulder 15.5\" | Bust 36\" | Waist 30\" | Height 5'7\"",
       notes: "Minimalist linen blazers, trousers, clean geometric cuts."
     }
+  ],
+
+  // Studio Operational Expenses & Material Loss Ledger
+  expenses: [
+    {
+      id: "EXP-101",
+      title: "Pure Organic Linen 60 Lea (Bulk Fabric Rolls)",
+      category: "Fabric & Material",
+      type: "Expense",
+      amount: 4950,
+      date: "2026-09-15",
+      paymentMode: "Bank Transfer",
+      notes: "45m Taupe & Biscuit linen procured from Surat weavers"
+    },
+    {
+      id: "EXP-102",
+      title: "Master Tailor Rahim - Weekly Stitching Payout",
+      category: "Tailor Wages & Labor",
+      type: "Expense",
+      amount: 3200,
+      date: "2026-09-18",
+      paymentMode: "UPI / GPay",
+      notes: "Tailoring payout for 3 boutique orders (ORD-101, ORD-103, ORD-105)"
+    },
+    {
+      id: "EXP-103",
+      title: "Handcrafted Wooden Buttons & Gold Zari Thread",
+      category: "Trims & Accessories",
+      type: "Expense",
+      amount: 850,
+      date: "2026-09-17",
+      paymentMode: "Cash",
+      notes: "Wooden carved buttons for Kurti batch & metallic thread"
+    },
+    {
+      id: "EXP-104",
+      title: "Artisan Meera - Kurta Hand Embroidery & Detailing",
+      category: "Tailor Wages & Labor",
+      type: "Expense",
+      amount: 1750,
+      date: "2026-09-19",
+      paymentMode: "UPI / GPay",
+      notes: "Hand embroidery for Pooja Menon Kurti"
+    },
+    {
+      id: "EXP-105",
+      title: "Boutique Paper Carry Bags & Luxury Ribbon Packaging",
+      category: "Packaging & Dispatch",
+      type: "Expense",
+      amount: 680,
+      date: "2026-09-16",
+      paymentMode: "Cash",
+      notes: "Kraft paper garment carry bags with embossed Mifka seal"
+    },
+    {
+      id: "EXP-106",
+      title: "Studio Steam Press Maintenance & Electric Utility",
+      category: "Workshop Utilities",
+      type: "Expense",
+      amount: 1100,
+      date: "2026-09-14",
+      paymentMode: "UPI / GPay",
+      notes: "Atelier power bill & steam iron servicing"
+    },
+    {
+      id: "EXP-107",
+      title: "Chanderi Fabric Cutting Misalignment & Panel Defect",
+      category: "Material Loss & Spoilage",
+      type: "Loss",
+      amount: 650,
+      date: "2026-09-19",
+      paymentMode: "Internal Loss",
+      notes: "1.5m flawed weave section discarded during pattern layout"
+    },
+    {
+      id: "EXP-108",
+      title: "Customer Trial Alteration Re-cut & Scrap Wastage",
+      category: "Material Loss & Spoilage",
+      type: "Loss",
+      amount: 450,
+      date: "2026-09-20",
+      paymentMode: "Internal Loss",
+      notes: "Waistline adjustment bodice panel scrap wastage"
+    }
   ]
 };

@@ -1123,3 +1123,230 @@ h1, h2, h3, h4, .font-serif-luxury, .font-roman {
   animation: shakePin 0.4s ease;
 }
 
+/* ==========================================================================
+   FINANCIAL LEDGER, EXPENSES, LOSS & PROFIT STYLING
+   ========================================================================== */
+.financial-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 1024px) {
+  .financial-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .financial-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.financial-card {
+  background: var(--bg-pure-white);
+  border: 1px solid var(--border-beige);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.financial-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.financial-card.card-profit {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FAF8F6 100%);
+  border-color: var(--soft-brown);
+  position: relative;
+  overflow: hidden;
+}
+
+.financial-card.card-profit::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--primary-brown);
+}
+
+.financial-card.card-loss {
+  background: linear-gradient(135deg, #FFFFFF 0%, #FDF8F6 100%);
+  border-color: #E6C8C3;
+  position: relative;
+  overflow: hidden;
+}
+
+.financial-card.card-loss::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #8B3A2B;
+}
+
+.fin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.fin-title {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.fin-icon-wrap {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-beige);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary-brown);
+}
+
+.fin-value {
+  font-family: var(--font-serif);
+  font-size: 1.85rem;
+  font-weight: 700;
+  color: var(--primary-brown);
+  line-height: 1.1;
+  margin-bottom: 6px;
+}
+
+.fin-value.text-profit {
+  color: var(--primary-brown);
+}
+
+.fin-value.text-loss {
+  color: #8B3A2B;
+}
+
+.fin-subtext {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* PROFIT & LOSS BREAKDOWN BAR */
+.pnl-bar-wrap {
+  height: 12px;
+  background: #EFE8E2;
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  margin: 14px 0 10px;
+}
+
+.pnl-bar-expense {
+  background: var(--secondary-brown);
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.pnl-bar-loss {
+  background: #8B3A2B;
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+.pnl-bar-profit {
+  background: var(--primary-brown);
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+/* FINANCIAL BADGES */
+.status-badge.status-expense {
+  background: #F4EFEA;
+  color: var(--secondary-brown);
+  border-color: var(--border-beige);
+}
+
+.status-badge.status-loss {
+  background: #FDF3F1;
+  color: #8B3A2B;
+  border-color: #E6C8C3;
+}
+
+.status-badge.status-profit {
+  background: #FAF8F6;
+  color: var(--primary-brown);
+  border-color: var(--primary-brown);
+  font-weight: 700;
+}
+
+/* EXPENSE TYPE TOGGLE PILLS */
+.type-pills-wrap {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.type-pill {
+  padding: 8px 18px;
+  border: 1px solid var(--border-beige);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--secondary-brown);
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-pill.active {
+  background: var(--primary-brown);
+  color: var(--bg-pure-white);
+  border-color: var(--primary-brown);
+}
+
+.type-pill.active-loss {
+  background: #8B3A2B;
+  color: var(--bg-pure-white);
+  border-color: #8B3A2B;
+}
+
+.expenses-filter-btn {
+  padding: 6px 14px;
+  border: 1px solid var(--border-beige);
+  background: var(--bg-pure-white);
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: var(--text-dark-brown);
+  transition: all 0.15s ease;
+}
+
+.expenses-filter-btn:hover {
+  background: var(--bg-secondary);
+}
+
+.expenses-filter-btn.active {
+  background: var(--primary-brown);
+  color: var(--bg-pure-white);
+  border-color: var(--primary-brown);
+  font-weight: 600;
+}
+
